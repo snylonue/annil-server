@@ -7,19 +7,31 @@
     crane.url = "github:ipetkov/crane";
 
     flake-utils.url = "github:numtide/flake-utils";
+
+    rust-overlay = {
+      url = "github:oxalica/rust-overlay";
+      inputs.nixpkgs.follows = "nixpkgs";
+    };
   };
 
   nixConfig = {
     extra-substituters = [ "https://annil-server.cachix.org" ];
-    extra-trusted-public-keys = [ "annil-server.cachix.org-1:ioHVMApnJQ8UDnQRzkGR4hDVJ0xTwpphc/6bffyxXXA=" ];
+    extra-trusted-public-keys = [
+      "annil-server.cachix.org-1:ioHVMApnJQ8UDnQRzkGR4hDVJ0xTwpphc/6bffyxXXA="
+    ];
   };
 
-  outputs = { self, nixpkgs, crane, flake-utils, ... }:
+  outputs = { self, nixpkgs, crane, flake-utils, rust-overlay, ... }:
     flake-utils.lib.eachDefaultSystem (system:
       let
-        pkgs = nixpkgs.legacyPackages.${system};
+        pkgs = import nixpkgs {
+          inherit system;
 
-        craneLib = crane.mkLib pkgs;
+          overlays = [ (import rust-overlay) ];
+        };
+
+        craneLib = (crane.mkLib pkgs).overrideToolchain
+          (p: p.rust-bin.nightly.latest.default);
 
         commonArgs = {
           src = craneLib.cleanCargoSource ./.;
