@@ -25,7 +25,7 @@
           src = craneLib.cleanCargoSource ./.;
           strictDeps = true;
 
-          cargoExtraArgs = "--frozen";
+          cargoExtraArgs = "--offline";
 
           buildInputs = [ ];
         };
