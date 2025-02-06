@@ -1,0 +1,25 @@
+[package]
+name = "annil-server"
+version = "0.1.0"
+edition = "2021"
+description = "An unofficial annil implementation"
+
+[dependencies]
+axum = "0.7"
+tower-http = { version = "0.6.2", features = ["cors"] }
+tower = "0.5.2"
+serde = "1.0.217"
+reqwest_dav = { version = "0.1.14", features = [
+    "rustls-tls",
+], default-features = false }
+async-trait = "0.1.86"
+tokio = "1.43.0"
+jwt-simple = "0.11"
+tokio-util = "0.7.13"
+futures-util = "0.3.31"
+clap = "4.5.28"
+toml = { version = "0.8.20", features = ["parse"], default-features = false }
+
+annil = { git = "https://github.com/ProjectAnni/anni.git" }
+anni-provider = { git = "https://github.com/ProjectAnni/anni.git" }
+anni-flac = { git = "https://github.com/ProjectAnni/anni.git" }
