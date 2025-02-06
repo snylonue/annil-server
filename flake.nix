@@ -31,7 +31,7 @@
         };
 
         craneLib = (crane.mkLib pkgs).overrideToolchain
-          (p: p.rust-bin.nightly.latest.default);
+          (p: p.rust-bin.nightly.latest.minimal);
 
         commonArgs = {
           src = craneLib.cleanCargoSource ./.;
