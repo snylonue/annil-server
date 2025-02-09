@@ -57,5 +57,80 @@
 
           packages = [ ];
         };
+
+        nixosModules.default = { config, lib, pkgs, ... }: {
+          options = {
+            services.annil-server = {
+              enable = lib.mkOption {
+                type = lib.types.bool;
+                default = false;
+                description = ''
+                  Whether to run annil-server.
+                '';
+              };
+
+              package = lib.mkOption {
+                type = lib.types.package;
+                default = self.packages.${system}.default;
+              };
+
+              settings = lib.mkOption {
+                type =
+                  lib.types.nullOr (lib.types.attrsOf lib.types.unspecified);
+                default = null;
+              };
+
+              user = lib.mkOption {
+                type = lib.types.str;
+                default = "annil-server";
+              };
+
+              group = lib.mkOption {
+                type = lib.types.str;
+                default = "annil-server";
+              };
+            };
+
+          };
+
+          config = let
+            cfg = config.services.annil-server;
+            settingsFile =
+              (pkgs.formats.toml { }).generate "config.toml" cfg.settings;
+          in lib.mkIf cfg.enable {
+            assertions = [{
+              assertion = (cfg.settings != null) && (cfg.package != null);
+              message = "`settings` should not be empty";
+            }];
+
+            systemd.services.annil-server = {
+              description = "annil-server Daemon";
+              after = [ "network.target" "nss-lookup.target" ];
+              wantedBy = [ "multi-user.target" ];
+              serviceConfig = {
+                ExecStart =
+                  "${cfg.package}/bin/annil-server --config ${settingsFile}";
+                CapabilityBoundingSet = "";
+                AmbientCapabilities = "";
+                NoNewPrivileges = true;
+                User = cfg.user;
+                Group = cfg.group;
+              };
+            };
+
+            users = {
+              users = lib.mkIf (cfg.user == "annil-server") {
+                annil-server = {
+                  isSystemUser = true;
+                  home = "/var/lib/annil-server";
+                  group = cfg.group;
+                  extraGroups = [ "networkmanager" ];
+                };
+              };
+              groups =
+                lib.mkIf (cfg.group == "annil-server") { annil-server = { }; };
+            };
+          };
+        };
       });
 }
